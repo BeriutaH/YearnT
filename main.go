@@ -1,7 +1,12 @@
 package main
 
-import "Yearn-go/src/lib/factory"
+import (
+	"Yearn-go/config"
+	"Yearn-go/routers"
+)
 
 func main() {
-	factory.Hello()
+	config.InitDB()
+	r := routers.SetupRouter()
+	_ = r.Run(":8080")
 }
