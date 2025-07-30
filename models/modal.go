@@ -2,7 +2,7 @@ package models
 
 type CoreAccount struct {
 	ID         uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
-	Username   string `gorm:"type:varchar(50);not null;index:user_idx;comment:用户名" json:"username"`
+	Username   string `gorm:"type:varchar(50);not null;index:user_idx;uniqueIndex;comment:用户名" json:"username"`
 	Password   string `gorm:"type:varchar(150);not null;comment:密码（加密存储）" json:"password"`
 	Department string `gorm:"type:varchar(50);comment:部门名称" json:"department"`
 	RealName   string `gorm:"type:varchar(50);comment:真实姓名" json:"real_name"`

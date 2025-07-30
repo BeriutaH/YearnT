@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"Yearn-go/config"
+	"Yearn-go/consts"
 	"Yearn-go/middleware"
 	"Yearn-go/models"
 	"Yearn-go/utils"
@@ -11,39 +12,42 @@ import (
 	"time"
 )
 
-var jwtKey = []byte("secret")
+func UserRegister(c *gin.Context) {
 
-func Register(c *gin.Context) {
-	var req models.User
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效输入"})
+	if !consts.GloRegister {
+		utils.Fail(c, consts.ErrRegisterDisabled)
+		return
+	}
+	u := new(models.CoreAccount)
+	if err := c.ShouldBindJSON(&u); err != nil {
+		utils.Fail(c, consts.ErrInvalidInput)
 		return
 	}
 
-	hashed, _ := utils.HashPassword(req.Password)
-	user := models.User{Username: req.Username, Password: hashed}
+	hashed, _ := utils.HashPassword(u.Password) // 加密密码
+	user := models.CoreAccount{Username: u.Username, Password: hashed}
 	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "用户已存在"})
+		utils.Fail(c, consts.ErrUserExists)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "注册成功"})
+	utils.Ok(c, "注册成功")
 }
 
 func Login(c *gin.Context) {
-	var req models.User
-	if err := c.ShouldBindJSON(&req); err != nil {
+	u := new(models.CoreAccount)
+	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效输入"})
 		return
 	}
 
-	var user models.User
-	if err := config.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
+	var user models.CoreAccount
+	if err := config.DB.Where("username = ?", u.Username).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "无此用户"})
 		return
 	}
 
-	if !utils.CheckPassword(user.Password, req.Password) {
+	if !utils.CheckPassword(user.Password, u.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "密码错误"})
 		return
 	}
