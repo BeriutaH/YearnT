@@ -10,4 +10,5 @@ const (
 	ErrInvalidToken          = "无效的Token"
 	ErrParamInvalid          = "参数错误"
 	ErrOperate               = "操作错误"
+	ErrGetUser               = "获取用户失败"
 )

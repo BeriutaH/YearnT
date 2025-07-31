@@ -6,5 +6,6 @@ var (
 	DefaultLang         = "zh" // 默认语言
 	MaxLimit            = 1000 // 查询最大上限
 	AppVersion          = "1.0.0"
+	UrlOp               = "op"
 	ErrRegisterDisabled = "系统已关闭注册"
 )
