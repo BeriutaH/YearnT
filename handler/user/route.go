@@ -6,9 +6,9 @@ import (
 
 func SuperUserApi() restful.RestfulAPI {
 	return restful.RestfulAPI{
-		Put:    InterfaceTestT,
-		Post:   InterfaceTes3tS,
-		Delete: InterfaceTestF,
 		Get:    InterfaceTestO,
+		Post:   ManageUserCreateOrEdit,
+		Put:    InterfaceTestT,
+		Delete: InterfaceTestF,
 	}
 }

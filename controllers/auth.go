@@ -3,6 +3,7 @@ package controllers
 import (
 	"Yearn-go/config"
 	"Yearn-go/consts"
+	"Yearn-go/factory"
 	"Yearn-go/middleware"
 	"Yearn-go/models"
 	"Yearn-go/utils"
@@ -23,7 +24,7 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	hashed, _ := utils.HashPassword(u.Password) // 加密密码
+	hashed, _ := factory.HashPassword(u.Password) // 加密密码
 	user := models.CoreAccount{Username: u.Username, Password: hashed}
 	if err := config.DB.Create(&user).Error; err != nil {
 		utils.Fail(c, consts.ErrUserExists)
@@ -46,7 +47,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if !utils.CheckPassword(user.Password, u.Password) {
+	if !factory.CheckPassword(user.Password, u.Password) {
 		utils.Fail(c, consts.ErrInvalidPassword)
 		return
 	}

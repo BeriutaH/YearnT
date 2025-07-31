@@ -5,20 +5,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InterfaceTestO(c *gin.Context) {
-	utils.Ok(c, "Get验证成功")
+func InterfaceTestO(g *gin.Context) {
+	utils.Ok(g, "Get验证成功")
 }
 
-func InterfaceTestT(c *gin.Context) {
-	utils.Ok(c, "PUT验证成功")
+func InterfaceTestT(g *gin.Context) {
+	utils.Ok(g, "PUT验证成功")
 }
 
-func InterfaceTes3tS(c *gin.Context) {
-	utils.Ok(c, "POST验证成功")
+func ManageUserCreateOrEdit(g *gin.Context) {
+	var success bool
+	var msg string
+	// 获取参数，判断操作类型
+	switch g.Query("op") {
+	case "add":
+		success, msg = CreateUser(g)
+	}
+
+	utils.HandleResult(g, success, msg)
 }
 
-func InterfaceTestF(c *gin.Context) {
-	idUser := c.Param("ya")
+func InterfaceTestF(g *gin.Context) {
+	idUser := g.Param("ya")
 	println(idUser)
-	utils.Ok(c, "DELETE验证成功")
+	utils.Ok(g, "DELETE验证成功")
 }

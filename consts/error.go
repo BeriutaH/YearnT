@@ -8,4 +8,6 @@ const (
 	ErrInvalidInput          = "无效输入"
 	ErrMissingOrInvalidToken = "Token缺少或格式错误"
 	ErrInvalidToken          = "无效的Token"
+	ErrParamInvalid          = "参数错误"
+	ErrOperate               = "操作错误"
 )

@@ -1,8 +1,10 @@
 package consts
 
 const (
-	MsgRegisterSuccess = "注册成功"
-	MsgLoginSuccess    = "登录成功"
-	MsgUpdateSuccess   = "更新成功"
-	MsgDeleteSuccess   = "删除成功"
+	MsgSuccess         = "成功"
+	MsgRegisterSuccess = "注册" + MsgSuccess
+	MsgLoginSuccess    = "登录" + MsgSuccess
+	MsgUpdateSuccess   = "更新" + MsgSuccess
+	MsgDeleteSuccess   = "删除" + MsgSuccess
+	MsgCreateSuccess   = "创建" + MsgSuccess
 )

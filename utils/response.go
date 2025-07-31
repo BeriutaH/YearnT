@@ -39,3 +39,12 @@ func Fail(g *gin.Context, msg string, code ...int) {
 	}
 	Resp(g, cod, msg, nil)
 }
+
+// HandleResult 根据参数返回
+func HandleResult(g *gin.Context, success bool, msg string) {
+	if success {
+		Ok(g, msg)
+	} else {
+		Fail(g, msg, 400)
+	}
+}
