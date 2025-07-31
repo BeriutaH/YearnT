@@ -8,7 +8,6 @@ import (
 	"Yearn-go/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"net/http"
 	"time"
 )
 
@@ -31,32 +30,34 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	utils.Ok(c, "注册成功")
+	utils.Ok(c, consts.MsgRegisterSuccess)
 }
 
 func Login(c *gin.Context) {
 	u := new(models.CoreAccount)
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效输入"})
+		utils.Fail(c, consts.ErrInvalidInput)
 		return
 	}
 
 	var user models.CoreAccount
 	if err := config.DB.Where("username = ?", u.Username).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "无此用户"})
+		utils.Fail(c, consts.ErrUserNotFound)
 		return
 	}
 
 	if !utils.CheckPassword(user.Password, u.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "密码错误"})
+		utils.Fail(c, consts.ErrInvalidPassword)
 		return
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(),
+		"user_id":  user.ID,
+		"username": user.Username,
+		"role":     "",
+		"exp":      time.Now().Add(time.Hour * 72).Unix(), // 3 天后过期
 	})
 
 	tokenString, _ := token.SignedString(middleware.DefaultJwtConfig.SigningKey)
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	utils.Ok(c, gin.H{"token": tokenString})
 }

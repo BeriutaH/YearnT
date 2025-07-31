@@ -2,8 +2,9 @@ package routers
 
 import (
 	"Yearn-go/controllers"
-	"Yearn-go/handler"
+	"Yearn-go/handler/user"
 	"Yearn-go/middleware"
+	"Yearn-go/restful"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +16,9 @@ func SetupRouter() *gin.Engine {
 
 	// 下面的请求都开启JWT
 	auth := r.Group("/api", middleware.JWTAuth())
-	auth.GET("/me", handler.Me)
+	manager := auth.Group("/manage", middleware.SuperManageGroup())
+
+	restful.Restful(manager, "user", user.SuperUserApi())
 
 	return r
 }

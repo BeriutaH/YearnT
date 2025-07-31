@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"Yearn-go/consts"
 	"Yearn-go/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -11,21 +12,21 @@ import (
 type JwtConfig struct {
 	GetKey     string
 	AuthScheme string
-	SigningKey string
+	SigningKey []byte
 }
 
 var DefaultJwtConfig = JwtConfig{
 	GetKey:     "Authorization",
-	SigningKey: "algorithmHS256",
+	SigningKey: []byte("frvWy3w9y9lSx+ZXlvGTC7wheS4b9P8CUekGL7vQR0Q"),
 	AuthScheme: "Bearer ",
 }
 
 func JWTAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenStr := c.GetHeader(DefaultJwtConfig.GetKey)
+	return func(g *gin.Context) {
+		tokenStr := g.GetHeader(DefaultJwtConfig.GetKey)
 		if tokenStr == "" || !strings.HasPrefix(tokenStr, DefaultJwtConfig.AuthScheme) {
-			utils.Fail(c, "缺少或格式错误的Token")
-			c.Abort()
+			utils.Fail(g, consts.ErrMissingOrInvalidToken)
+			g.Abort()
 			return
 		}
 
@@ -40,16 +41,16 @@ func JWTAuth() gin.HandlerFunc {
 			return []byte(DefaultJwtConfig.SigningKey), nil
 		})
 		if err != nil || !token.Valid {
-			utils.Fail(c, "无效的Token")
-			c.Abort()
+			utils.Fail(g, consts.ErrInvalidToken)
+			g.Abort() // 停止后续中间件或处理函数
 			return
 		}
 
-		// 将 Claims 写入 Gin 上下文（方便后续使用）
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			c.Set("claims", claims)
+		// 将claims存入context，供后续中间件使用
+		if claimsI, ok := token.Claims.(jwt.MapClaims); ok {
+			g.Set("claims", claimsI)
 		}
 
-		c.Next()
+		g.Next()
 	}
 }

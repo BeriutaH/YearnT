@@ -13,7 +13,7 @@ type Response struct {
 }
 
 // Resp 通用响应函数，可传 code、msg、data，自动处理默认值
-func Resp(c *gin.Context, code int, msg string, data interface{}) {
+func Resp(g *gin.Context, code int, msg string, data interface{}) {
 	if code == 0 {
 		code = 200
 	}
@@ -23,19 +23,19 @@ func Resp(c *gin.Context, code int, msg string, data interface{}) {
 	if data == nil {
 		data = gin.H{}
 	}
-	c.JSON(http.StatusOK, Response{Code: code, Message: msg, Data: data})
+	g.JSON(http.StatusOK, Response{Code: code, Message: msg, Data: data})
 }
 
 // Ok 成功响应，带 data
-func Ok(c *gin.Context, data interface{}) {
-	Resp(c, 200, "success", data)
+func Ok(g *gin.Context, data interface{}) {
+	Resp(g, 0, "", data)
 }
 
 // Fail 失败响应，带 msg 和可选 code
-func Fail(c *gin.Context, msg string, code ...int) {
+func Fail(g *gin.Context, msg string, code ...int) {
 	cod := 400 // 默认失败状态码
 	if len(code) > 0 {
 		cod = code[0]
 	}
-	Resp(c, cod, msg, nil)
+	Resp(g, cod, msg, nil)
 }
