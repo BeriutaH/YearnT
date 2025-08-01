@@ -4,42 +4,129 @@ import (
 	"Yearn-go/config"
 	"Yearn-go/consts"
 	"Yearn-go/factory"
-	"Yearn-go/models"
+	"Yearn-go/handler/common"
+	"Yearn-go/model"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 )
 
-type CommonUser struct {
-	Username   string `json:"username" binding:"required"`
-	Password   string `json:"password" binding:"required"`
-	Department string `json:"department" binding:"required"`
-	RealName   string `json:"real_name" binding:"required"`
-	Email      string `json:"email" binding:"required,email"` // email 格式校验
+var validate = validator.New()
+
+// BaseUser 用户共用
+type BaseUser struct {
+	Username   string `json:"username"`
+	Department string `json:"department"`
+	RealName   string `json:"real_name"`
+	Email      string `json:"email"`
+}
+
+type CreateUserRequest struct {
+	BaseUser
+	Password string `json:"password"`
+}
+
+type EditUserRequest struct {
+	ID int `json:"id" binding:"required"`
+	BaseUser
+	IsRecorder uint `json:"is_recorder"`
+}
+
+func validateCreateUser(u CreateUserRequest) error {
+	type temp struct {
+		Username   string `validate:"required"`
+		Password   string `validate:"required"`
+		Department string `validate:"required"`
+		RealName   string `validate:"required"`
+		Email      string `validate:"required,email"`
+	}
+	return validate.Struct(temp{
+		Username:   u.Username,
+		Password:   u.Password,
+		Department: u.Department,
+		RealName:   u.RealName,
+		Email:      u.Email,
+	})
+}
+
+func validateEditUser(u EditUserRequest) error {
+	if u.ID <= 0 {
+		return errors.New("ID错误")
+	}
+	if u.Email != "" {
+		if err := validate.Var(u.Email, "email"); err != nil {
+			return errors.New("邮箱格式错误")
+		}
+	}
+	return nil
 }
 
 func CreateUser(g *gin.Context) (bool, string) {
-	var u CommonUser
-	if err := g.ShouldBindJSON(&u); err != nil {
+	var u CreateUserRequest
+	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+		return false, consts.ErrParamInvalid + ": " + err.Error()
+	}
+	if err := validateCreateUser(u); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
 	// 判断是否重名
-	var unique models.CoreAccount
-	if err := config.DB.Where("username = ?", u.Username).Select("username").First(&unique).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
+	var unique model.CoreAccount
+	if err := config.DB.Where("username = ?", u.Username).Select("username").
+		First(&unique).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, consts.ErrUserExists
 	}
 	// 加密密码
 	u.Password = factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))
-	var user models.CoreAccount
+	var user model.CoreAccount
 	if err := copier.Copy(&user, &u); err != nil {
 		return false, consts.ErrOperate + ": " + err.Error()
 	}
 	user.IsRecorder = 2
 
-	// 添加数据库
-	config.DB.Create(&user)
-	config.DB.Create(&models.CoreGrained{Username: u.Username, Group: factory.EmptyGroup()})
+	// 添加数据库,提交事务
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&model.CoreGrained{
+			UserId: user.ID,
+			Group:  common.EmptyGroup(),
+		}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false, fmt.Sprintf("事务执行失败: %v", err)
+	}
 
 	return true, "用户" + consts.MsgCreateSuccess
+}
+
+func EditUser(g *gin.Context) (bool, string) {
+	var u EditUserRequest
+	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+		return false, consts.ErrParamInvalid + ": " + err.Error()
+	}
+	if err := validateEditUser(u); err != nil {
+		return false, consts.ErrParamInvalid + ": " + err.Error()
+	}
+
+	// 前端传哪个值，改哪个值
+	m := common.RemoveZeroValues(common.StructToMap(u))
+
+	// 判断只能更改的字段
+	if len(m) > 0 {
+		if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).Updates(m).Error; err != nil {
+			return false, "更新失败: " + err.Error()
+		}
+	}
+	return true, "用户" + consts.MsgUpdateSuccess
 }

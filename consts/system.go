@@ -9,3 +9,8 @@ var (
 	UrlOp               = "op"
 	ErrRegisterDisabled = "系统已关闭注册"
 )
+
+const (
+	CodeSuccess = 200
+	CodeFail    = 400
+)

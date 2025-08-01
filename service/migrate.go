@@ -1,27 +1,27 @@
 package service
 
 import (
-	"Yearn-go/models"
+	"Yearn-go/model"
 )
 
 // AutoMigrateAll 数据库迁移模型配置
 func AutoMigrateAll() []interface{} {
 	return []interface{}{
-		&models.CoreAccount{},
-		&models.CoreGlobalConfiguration{},
-		&models.CoreSqlRecord{},
-		&models.CoreSqlOrder{},
-		&models.CoreRollback{},
-		&models.CoreDataSource{},
-		&models.CoreGrained{},
-		&models.CoreRoleGroup{},
-		&models.CoreQueryOrder{},
-		&models.CoreQueryRecord{},
-		&models.CoreAutoTask{},
-		&models.CoreWorkflowTpl{},
-		&models.CoreWorkflowDetail{},
-		&models.CoreOrderComment{},
-		&models.CoreRules{},
-		&models.CoreTotalTickets{},
+		&model.CoreAccount{},
+		&model.CoreGlobalConfiguration{},
+		&model.CoreSqlRecord{},
+		&model.CoreSqlOrder{},
+		&model.CoreRollback{},
+		&model.CoreDataSource{},
+		&model.CoreGrained{},
+		&model.CoreRoleGroup{},
+		&model.CoreQueryOrder{},
+		&model.CoreQueryRecord{},
+		&model.CoreAutoTask{},
+		&model.CoreWorkflowTpl{},
+		&model.CoreWorkflowDetail{},
+		&model.CoreOrderComment{},
+		&model.CoreRules{},
+		&model.CoreTotalTickets{},
 	}
 }

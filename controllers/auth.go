@@ -5,7 +5,7 @@ import (
 	"Yearn-go/consts"
 	"Yearn-go/factory"
 	"Yearn-go/middleware"
-	"Yearn-go/models"
+	"Yearn-go/model"
 	"Yearn-go/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -18,14 +18,14 @@ func UserRegister(c *gin.Context) {
 		utils.Fail(c, consts.ErrRegisterDisabled)
 		return
 	}
-	u := new(models.CoreAccount)
+	u := new(model.CoreAccount)
 	if err := c.ShouldBindJSON(&u); err != nil {
 		utils.Fail(c, consts.ErrInvalidInput)
 		return
 	}
 
 	hashed, _ := factory.HashPassword(u.Password) // 加密密码
-	user := models.CoreAccount{Username: u.Username, Password: hashed}
+	user := model.CoreAccount{Username: u.Username, Password: hashed}
 	if err := config.DB.Create(&user).Error; err != nil {
 		utils.Fail(c, consts.ErrUserExists)
 		return
@@ -35,13 +35,13 @@ func UserRegister(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	u := new(models.CoreAccount)
+	u := new(model.CoreAccount)
 	if err := c.ShouldBindJSON(&u); err != nil {
 		utils.Fail(c, consts.ErrInvalidInput)
 		return
 	}
 
-	var user models.CoreAccount
+	var user model.CoreAccount
 	if err := config.DB.Where("username = ?", u.Username).First(&user).Error; err != nil {
 		utils.Fail(c, consts.ErrUserNotFound)
 		return

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"Yearn-go/consts"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -15,7 +16,7 @@ type Response struct {
 // Resp 通用响应函数，可传 code、msg、data，自动处理默认值
 func Resp(g *gin.Context, code int, msg string, data interface{}) {
 	if code == 0 {
-		code = 200
+		code = consts.CodeSuccess
 	}
 	if msg == "" {
 		msg = "success"
@@ -33,7 +34,7 @@ func Ok(g *gin.Context, data interface{}) {
 
 // Fail 失败响应，带 msg 和可选 code
 func Fail(g *gin.Context, msg string, code ...int) {
-	cod := 400 // 默认失败状态码
+	cod := consts.CodeFail // 默认失败状态码
 	if len(code) > 0 {
 		cod = code[0]
 	}
@@ -45,6 +46,6 @@ func HandleResult(g *gin.Context, success bool, msg string) {
 	if success {
 		Ok(g, msg)
 	} else {
-		Fail(g, msg, 400)
+		Fail(g, msg, consts.CodeFail)
 	}
 }

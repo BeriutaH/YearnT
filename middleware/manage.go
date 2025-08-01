@@ -17,5 +17,6 @@ func SuperManageGroup() gin.HandlerFunc {
 			return
 		}
 		utils.Fail(g, consts.ErrUnauthorized, http.StatusForbidden)
+		g.Abort()
 	}
 }

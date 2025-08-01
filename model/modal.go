@@ -1,4 +1,4 @@
-package models
+package model
 
 type CoreAccount struct {
 	ID         uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
@@ -38,7 +38,7 @@ type CoreSqlRecord struct {
 type CoreSqlOrder struct {
 	ID          uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	WorkId      string `gorm:"type:varchar(50);not null;index:workId_idx;comment:工作ID" json:"work_id"`
-	Username    string `gorm:"type:varchar(50);not null;index:query_idx;comment:用户名" json:"username"`
+	UserId      uint   `gorm:"type:int;not null;index:query_idx;comment:用户Id" json:"user_id"`
 	Status      uint   `gorm:"type:tinyint(2);not null;comment:状态" json:"status"`
 	Type        int    `gorm:"type:tinyint(2);not null;comment:类型，1-DML，0-DDL" json:"type"` // 1 dml  0 ddl
 	Backup      uint   `gorm:"type:tinyint(2);not null;comment:是否备份" json:"backup"`
@@ -52,7 +52,6 @@ type CoreSqlOrder struct {
 	Text        string `gorm:"type:longtext;not null;comment:文本描述" json:"text"`
 	Assigned    string `gorm:"type:varchar(550);not null;comment:指派人" json:"assigned"`
 	Delay       string `gorm:"type:varchar(50);not null;default:'none';comment:延迟信息" json:"delay"`
-	RealName    string `gorm:"type:varchar(50);not null;comment:真实姓名" json:"real_name"`
 	ExecuteTime string `gorm:"type:varchar(50);comment:执行时间" json:"execute_time"`
 	CurrentStep int    `gorm:"type:int(50);not null;default:1;comment:当前步骤" json:"current_step"`
 	Relevant    DBJSON `gorm:"type:json;comment:关联信息JSON" json:"relevant"`
@@ -72,7 +71,7 @@ type CoreDataSource struct {
 	Source           string `gorm:"type:varchar(50);not null;comment:数据源名称" json:"source"`
 	IP               string `gorm:"type:varchar(200);not null;comment:IP地址" json:"ip"`
 	Port             int    `gorm:"type:int(10);not null;comment:端口号" json:"port"`
-	Username         string `gorm:"type:varchar(50);not null;comment:用户名" json:"username"`
+	UserId           uint   `gorm:"type:int;not null;comment:用户ID" json:"user_id"`
 	Password         string `gorm:"type:varchar(150);not null;comment:密码" json:"password"`
 	IsQuery          int    `gorm:"type:tinyint(2);not null;comment:读写权限，0写，1读，2读写" json:"is_query"`
 	FlowID           int    `gorm:"type:int(100);not null;comment:流程ID" json:"flow_id"`
@@ -88,9 +87,9 @@ type CoreDataSource struct {
 }
 
 type CoreGrained struct {
-	ID       uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
-	Username string `gorm:"type:varchar(50);not null;index:user_idx;comment:用户名" json:"username"`
-	Group    DBJSON `gorm:"type:json;comment:所属分组（JSON数组）" json:"group"`
+	ID     uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
+	UserId uint   `gorm:"type:int;not null;index:user_idx;comment:用户名" json:"user_id"`
+	Group  DBJSON `gorm:"type:json;comment:所属分组（JSON数组）" json:"group"`
 }
 
 type CoreRoleGroup struct {
@@ -103,12 +102,11 @@ type CoreRoleGroup struct {
 type CoreQueryOrder struct {
 	ID           uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	WorkId       string `gorm:"type:varchar(50);not null;index:workId_idx;comment:工单ID" json:"work_id"`
-	Username     string `gorm:"type:varchar(50);not null;comment:提交人用户名" json:"username"`
+	UserId       uint   `gorm:"type:int;not null;comment:提交人用户ID" json:"user_id"`
 	Date         string `gorm:"type:varchar(50);not null;comment:提交日期" json:"date"`
 	ApprovalTime string `gorm:"type:varchar(50);not null;comment:审批时间" json:"approval_time"`
 	Text         string `gorm:"type:longtext;not null;comment:SQL内容或说明文本" json:"text"`
 	Assigned     string `gorm:"type:varchar(50);not null;comment:分配执行人用户名" json:"assigned"`
-	RealName     string `gorm:"type:varchar(50);not null;comment:提交人真实姓名" json:"real_name"`
 	Export       uint   `gorm:"type:tinyint(2);not null;comment:是否导出，0否 1是" json:"export"`
 	SourceId     string `gorm:"type:varchar(200);not null;index:source_idx;comment:数据源唯一标识" json:"source_id"`
 	Status       int    `gorm:"type:tinyint(2);not null;index:status_idx;comment:工单状态" json:"status"`
@@ -149,19 +147,19 @@ type CoreWorkflowTpl struct {
 
 // CoreWorkflowDetail 工作流执行记录
 type CoreWorkflowDetail struct {
-	ID       uint   `gorm:"primary_key;AUTO_INCREMENT;comment:'主键 ID'" json:"id"`
-	WorkId   string `gorm:"type:varchar(50);not null;index:workId_idx;comment:'工单 ID'" json:"work_id"`
-	Username string `gorm:"type:varchar(50);not null;index:query_idx;comment:'操作用户'" json:"username"`
-	Time     string `gorm:"type:varchar(50);not null;comment:'操作时间'" json:"time"`
-	Action   string `gorm:"type:varchar(550);not null;comment:'操作内容'" json:"action"`
+	ID     uint   `gorm:"primary_key;AUTO_INCREMENT;comment:'主键 ID'" json:"id"`
+	WorkId string `gorm:"type:varchar(50);not null;index:workId_idx;comment:'工单 ID'" json:"work_id"`
+	UserId uint   `gorm:"type:int;not null;index:query_idx;comment:'操作用户ID'" json:"user_id"`
+	Time   string `gorm:"type:varchar(50);not null;comment:'操作时间'" json:"time"`
+	Action string `gorm:"type:varchar(550);not null;comment:'操作内容'" json:"action"`
 }
 
 type CoreOrderComment struct {
-	ID       uint   `gorm:"primary_key;AUTO_INCREMENT;comment:'主键 ID'" json:"id"`
-	WorkId   string `gorm:"type:varchar(50);not null;index:workId_idx;comment:'工单 ID'" json:"work_id"`
-	Username string `gorm:"type:varchar(50);not null;comment:'评论用户'" json:"username"`
-	Content  string `gorm:"type:longtext;comment:'评论内容'" json:"content"`
-	Time     string `gorm:"type:varchar(50);not null;comment:'评论时间'" json:"time"`
+	ID      uint   `gorm:"primary_key;AUTO_INCREMENT;comment:'主键 ID'" json:"id"`
+	WorkId  string `gorm:"type:varchar(50);not null;index:workId_idx;comment:'工单 ID'" json:"work_id"`
+	UserId  uint   `gorm:"type:int;not null;comment:'评论用户ID'" json:"user_id"`
+	Content string `gorm:"type:longtext;comment:'评论内容'" json:"content"`
+	Time    string `gorm:"type:varchar(50);not null;comment:'评论时间'" json:"time"`
 }
 
 type CoreRules struct {

@@ -3,14 +3,19 @@ package user
 import (
 	"Yearn-go/config"
 	"Yearn-go/consts"
-	"Yearn-go/factory"
-	"Yearn-go/models"
+	"Yearn-go/handler/common"
+	"Yearn-go/model"
 	"Yearn-go/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
+type ActionUserBase struct {
+	Action string `json:"action" binding:"required,oneof=add edit"`
+}
+
 func GetUserInfo(g *gin.Context) {
-	var userList []models.CoreAccount
+	var userList []model.CoreAccount
 	if err := config.DB.Omit("password").Find(&userList).Error; err != nil {
 		utils.Fail(g, consts.ErrGetUser)
 		return
@@ -19,33 +24,34 @@ func GetUserInfo(g *gin.Context) {
 }
 
 func SelectUserInfo(g *gin.Context) {
-	var req factory.QueryRequest
+	var req common.QueryRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
 		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
 		return
 	}
-	// 初始化查询
-	db := config.DB.Model(&models.CoreAccount{}).Omit("password")
-	allowedFields := map[string]bool{
-		"username":  true,
-		"email":     true,
-		"real_name": true,
-	}
-	db = req.ApplyFilters(db, allowedFields)
-	// 分页
-	info, _ := factory.Paginate[models.CoreAccount](req.Page, req.PageSize, db)
-	utils.Ok(g, info)
+
+	p := new(common.PageList[[]model.CoreAccount])
+	p.ToPageInfo(req.PageInfo).Paging().Query(
+		common.QmiFilters(common.UserSensitiveFields),
+		common.ApplyFilters(common.UserQueryableFields, req.Filters),
+	)
+	utils.Ok(g, p.ToMessage())
 }
 
 func ManageUserCreateOrEdit(g *gin.Context) {
+	var action ActionUserBase
+	if err := g.ShouldBindBodyWith(&action, binding.JSON); err != nil {
+		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		return
+	}
 	var success bool
 	var msg string
 	// 获取参数，判断操作类型
-	switch g.Query(consts.UrlOp) {
+	switch action.Action {
 	case "add":
 		success, msg = CreateUser(g)
 	case "edit":
-		success, msg = CreateUser(g)
+		success, msg = EditUser(g)
 	}
 	utils.HandleResult(g, success, msg)
 }
