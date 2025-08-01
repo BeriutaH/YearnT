@@ -142,7 +142,19 @@ func EditUser(g *gin.Context) (bool, string) {
 	return true, consts.UserMsg + consts.MsgUpdateSuccess
 }
 
-func ResetPwd(g *gin.Context) (bool, string) {
+func ResetPwdUser(g *gin.Context) (bool, string) {
+	var u ChPwd
+	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+		return false, consts.ErrParamInvalid + ": " + err.Error()
+	}
+	if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).
+		Updates(model.CoreAccount{Password: factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))}).Error; err != nil {
+		return false, consts.ErrOperate + ": " + err.Error()
+	}
+	return true, consts.UserMsg + consts.MsgUpdateSuccess
+}
+
+func EditPayloadUser(g *gin.Context) (bool, string) {
 	var u ChPwd
 	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()

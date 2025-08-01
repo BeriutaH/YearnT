@@ -53,7 +53,9 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 	case "edit":
 		success, msg = EditUser(g)
 	case "reset":
-		success, msg = ResetPwd(g)
+		success, msg = ResetPwdUser(g)
+	case "policy":
+		success, msg = EditPayloadUser(g)
 
 	}
 
