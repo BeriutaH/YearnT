@@ -6,4 +6,5 @@ const (
 	MsgUpdateSuccess   = "更新" + MsgSuccess
 	MsgDeleteSuccess   = "删除" + MsgSuccess
 	MsgCreateSuccess   = "创建" + MsgSuccess
+	UserMsg            = "用户"
 )

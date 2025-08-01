@@ -11,7 +11,7 @@ import (
 )
 
 type ActionUserBase struct {
-	Action string `json:"action" binding:"required,oneof=add edit"`
+	Action string `json:"action" binding:"required,oneof=add edit reset"`
 }
 
 func GetUserInfo(g *gin.Context) {
@@ -52,7 +52,11 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 		success, msg = CreateUser(g)
 	case "edit":
 		success, msg = EditUser(g)
+	case "reset":
+		success, msg = ResetPwd(g)
+
 	}
+
 	utils.HandleResult(g, success, msg)
 }
 

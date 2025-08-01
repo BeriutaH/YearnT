@@ -24,16 +24,27 @@ type BaseUser struct {
 	RealName   string `json:"real_name"`
 	Email      string `json:"email"`
 }
+type PwdType struct {
+	Password string `json:"password" binding:"required"`
+}
 
 type CreateUserRequest struct {
 	BaseUser
-	Password string `json:"password"`
+	PwdType
+}
+type IdType struct {
+	ID int `json:"id" binding:"required"`
 }
 
 type EditUserRequest struct {
-	ID int `json:"id" binding:"required"`
+	IdType
 	BaseUser
 	IsRecorder uint `json:"is_recorder"`
+}
+
+type ChPwd struct {
+	IdType
+	PwdType
 }
 
 func validateCreateUser(u CreateUserRequest) error {
@@ -125,8 +136,20 @@ func EditUser(g *gin.Context) (bool, string) {
 	// 判断只能更改的字段
 	if len(m) > 0 {
 		if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).Updates(m).Error; err != nil {
-			return false, "更新失败: " + err.Error()
+			return false, consts.ErrOperate + ": " + err.Error()
 		}
 	}
-	return true, "用户" + consts.MsgUpdateSuccess
+	return true, consts.UserMsg + consts.MsgUpdateSuccess
+}
+
+func ResetPwd(g *gin.Context) (bool, string) {
+	var u ChPwd
+	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+		return false, consts.ErrParamInvalid + ": " + err.Error()
+	}
+	if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).
+		Updates(model.CoreAccount{Password: factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))}).Error; err != nil {
+		return false, consts.ErrOperate + ": " + err.Error()
+	}
+	return true, consts.UserMsg + consts.MsgUpdateSuccess
 }
