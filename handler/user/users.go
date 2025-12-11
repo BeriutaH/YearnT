@@ -44,22 +44,40 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
 		return
 	}
-	var success bool
-	var msg string
-	// 获取参数，判断操作类型
-	switch action.Action {
-	case "add":
-		success, msg = CreateUser(g)
-	case "edit":
-		success, msg = EditUser(g)
-	case "reset":
-		success, msg = ResetPwdUser(g)
-	case "policy":
-		success, msg = EditPayloadUser(g)
 
+	// 操作映射
+	handlers := map[string]func(*gin.Context) (bool, string){
+		"add":    CreateUser,
+		"edit":   EditUser,
+		"reset":  ResetPwdUser,
+		"policy": EditPayloadUser,
 	}
 
+	handler, ok := handlers[action.Action]
+	if !ok {
+		utils.Fail(g, "未知 action: "+action.Action)
+		return
+	}
+
+	success, msg := handler(g)
+
 	utils.HandleResult(g, success, msg)
+	//var success bool
+	//var msg string
+	//// 获取参数，判断操作类型
+	//switch action.Action {
+	//case "add":
+	//	success, msg = CreateUser(g)
+	//case "edit":
+	//	success, msg = EditUser(g)
+	//case "reset":
+	//	success, msg = ResetPwdUser(g)
+	//case "policy":
+	//	success, msg = EditPayloadUser(g)
+	//
+	//}
+	//
+	//utils.HandleResult(g, success, msg)
 }
 
 func InterfaceTestF(g *gin.Context) {
