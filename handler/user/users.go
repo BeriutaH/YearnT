@@ -62,22 +62,6 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 	success, msg := handler(g)
 
 	utils.HandleResult(g, success, msg)
-	//var success bool
-	//var msg string
-	//// 获取参数，判断操作类型
-	//switch action.Action {
-	//case "add":
-	//	success, msg = CreateUser(g)
-	//case "edit":
-	//	success, msg = EditUser(g)
-	//case "reset":
-	//	success, msg = ResetPwdUser(g)
-	//case "policy":
-	//	success, msg = EditPayloadUser(g)
-	//
-	//}
-	//
-	//utils.HandleResult(g, success, msg)
 }
 
 func InterfaceTestF(g *gin.Context) {
