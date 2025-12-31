@@ -14,9 +14,11 @@ func SuperManageGroup() gin.HandlerFunc {
 		token := new(factory.Token).JwtParse(g)
 		// 获取用户名
 		if token.UserID == 1 {
+			g.Next() // 验证通过，继续执行后续中间件和处理函数
 			return
 		}
 		utils.Fail(g, consts.ErrUnauthorized, http.StatusForbidden)
-		g.Abort()
+		g.Abort() // 停止后续中间件或处理函数
+		return    // 确保函数立即返回，不继续执行
 	}
 }
