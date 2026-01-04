@@ -47,21 +47,29 @@ type ChPwd struct {
 	PwdType
 }
 
-func validateCreateUser(u CreateUserRequest) error {
-	type temp struct {
-		Username   string `validate:"required"`
-		Password   string `validate:"required"`
-		Department string `validate:"required"`
-		RealName   string `validate:"required"`
-		Email      string `validate:"required,email"`
+func checkEmailFormat(email string) error {
+	if err := validate.Var(email, "email"); err != nil {
+		return errors.New("email " + consts.ErrFormat)
 	}
-	return validate.Struct(temp{
-		Username:   u.Username,
-		Password:   u.Password,
-		Department: u.Department,
-		RealName:   u.RealName,
-		Email:      u.Email,
-	})
+	return nil
+}
+
+func validateCreateUser(u CreateUserRequest) error {
+	checkMap := map[string]string{
+		u.Username:   "username",
+		u.Password:   "password",
+		u.Department: "department",
+		u.RealName:   "real_name",
+		u.Email:      "email",
+	}
+
+	for val, field := range checkMap {
+		if val == "" {
+			return fmt.Errorf("%s is required", field)
+		}
+	}
+
+	return checkEmailFormat(u.Email)
 }
 
 func validateEditUser(u EditUserRequest) error {
@@ -69,9 +77,7 @@ func validateEditUser(u EditUserRequest) error {
 		return errors.New("ID错误")
 	}
 	if u.Email != "" {
-		if err := validate.Var(u.Email, "email"); err != nil {
-			return errors.New("邮箱格式错误")
-		}
+		return checkEmailFormat(u.Email)
 	}
 	return nil
 }
@@ -84,12 +90,15 @@ func CreateUser(g *gin.Context) (bool, string) {
 	if err := validateCreateUser(u); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
+
 	// 判断是否重名
-	var unique model.CoreAccount
-	if err := config.DB.Where("username = ?", u.Username).Select("username").
-		First(&unique).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
-		return false, consts.ErrUserExists
+	var exists bool
+	config.DB.Model(&model.CoreAccount{}).
+		Select("count(*) > 0").Where("username = ?", u.Username).Find(&exists)
+	if exists {
+		return false, consts.UserMsg + consts.ErrUserExists
 	}
+
 	// 加密密码
 	u.Password = factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))
 	var user model.CoreAccount
@@ -115,10 +124,10 @@ func CreateUser(g *gin.Context) (bool, string) {
 	})
 
 	if err != nil {
-		return false, fmt.Sprintf("事务执行失败: %v", err)
+		return false, fmt.Sprintf("%v: %v", consts.ErrOperate, err)
 	}
 
-	return true, "用户" + consts.MsgCreateSuccess
+	return true, consts.UserMsg + consts.MsgCreateSuccess
 }
 
 func EditUser(g *gin.Context) (bool, string) {

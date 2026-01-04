@@ -10,8 +10,18 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+// ProcessorUser 处理器类型
+type ProcessorUser func(*gin.Context) (bool, string)
+
 type ActionUserBase struct {
 	Action string `json:"action" binding:"required,oneof=add edit reset"`
+}
+
+var actionMap = map[string]ProcessorUser{
+	"add":    CreateUser,
+	"edit":   EditUser,
+	"reset":  ResetPwdUser,
+	"policy": EditPayloadUser,
 }
 
 func GetUserInfo(g *gin.Context) {
@@ -46,16 +56,9 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 	}
 
 	// 操作映射
-	handlers := map[string]func(*gin.Context) (bool, string){
-		"add":    CreateUser,
-		"edit":   EditUser,
-		"reset":  ResetPwdUser,
-		"policy": EditPayloadUser,
-	}
-
-	handler, ok := handlers[action.Action]
+	handler, ok := actionMap[action.Action]
 	if !ok {
-		utils.Fail(g, "未知 action: "+action.Action)
+		utils.Fail(g, "不支持的操作类型: "+action.Action)
 		return
 	}
 

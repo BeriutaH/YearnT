@@ -4,14 +4,14 @@ package restful
 
 import "github.com/gin-gonic/gin"
 
-type RestfulAPI struct {
+type RouteGroup struct {
 	Get    gin.HandlerFunc
 	Post   gin.HandlerFunc
 	Put    gin.HandlerFunc
 	Delete gin.HandlerFunc
 }
 
-func Restful(r *gin.RouterGroup, path string, api RestfulAPI) {
+func Restful(r *gin.RouterGroup, path string, api RouteGroup) {
 
 	group := r.Group(path)
 	if api.Get != nil {

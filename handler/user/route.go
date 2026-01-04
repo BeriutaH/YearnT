@@ -4,8 +4,8 @@ import (
 	"Yearn-go/restful"
 )
 
-func SuperUserApi() restful.RestfulAPI {
-	return restful.RestfulAPI{
+func SuperUserApi() restful.RouteGroup {
+	return restful.RouteGroup{
 		Get:    GetUserInfo,
 		Post:   ManageUserCreateOrEdit,
 		Put:    SelectUserInfo,
