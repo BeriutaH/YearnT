@@ -24,6 +24,7 @@ var actionMap = map[string]ProcessorUser{
 	"policy": EditPayloadUser,
 }
 
+// GetUserInfo 获取全部的用户列表
 func GetUserInfo(g *gin.Context) {
 	var userList []model.CoreAccount
 	if err := config.DB.Omit("password").Find(&userList).Error; err != nil {
@@ -33,6 +34,7 @@ func GetUserInfo(g *gin.Context) {
 	utils.Ok(g, userList)
 }
 
+// SelectUserInfo 分页查询
 func SelectUserInfo(g *gin.Context) {
 	var req common.QueryRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
@@ -48,6 +50,7 @@ func SelectUserInfo(g *gin.Context) {
 	utils.Ok(g, p.ToMessage())
 }
 
+// ManageUserCreateOrEdit 添加，修改，删除 用户
 func ManageUserCreateOrEdit(g *gin.Context) {
 	var action ActionUserBase
 	if err := g.ShouldBindBodyWith(&action, binding.JSON); err != nil {
@@ -67,8 +70,16 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 	utils.HandleResult(g, success, msg)
 }
 
-func InterfaceTestF(g *gin.Context) {
-	idUser := g.Param(consts.UrlOp)
-	println(idUser)
-	utils.Ok(g, "DELETE验证成功")
+func DeleteUserById(g *gin.Context) {
+	var uId IdType
+	if err := g.ShouldBindJSON(&uId); err != nil {
+		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		return
+	}
+
+	if err := config.DB.Delete(&model.CoreAccount{}, uId).Error; err != nil {
+		utils.Fail(g, consts.ErrOperate)
+		return
+	}
+	utils.Ok(g, nil)
 }

@@ -19,4 +19,6 @@ const (
 	ErrFormat                = "格式错误"
 	ErrOperate               = "操作" + MsgFal
 	ErrGetUser               = "获取" + UserMsg + MsgFal
+	MsgUserUpdate            = UserMsg + MsgUpdateSuccess
+	MsgUserCreate            = UserMsg + MsgCreateSuccess
 )

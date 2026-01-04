@@ -127,7 +127,7 @@ func CreateUser(g *gin.Context) (bool, string) {
 		return false, fmt.Sprintf("%v: %v", consts.ErrOperate, err)
 	}
 
-	return true, consts.UserMsg + consts.MsgCreateSuccess
+	return true, consts.MsgUserCreate
 }
 
 func EditUser(g *gin.Context) (bool, string) {
@@ -148,7 +148,7 @@ func EditUser(g *gin.Context) (bool, string) {
 			return false, consts.ErrOperate + ": " + err.Error()
 		}
 	}
-	return true, consts.UserMsg + consts.MsgUpdateSuccess
+	return true, consts.MsgUserUpdate
 }
 
 func ResetPwdUser(g *gin.Context) (bool, string) {
@@ -160,7 +160,7 @@ func ResetPwdUser(g *gin.Context) (bool, string) {
 		Updates(model.CoreAccount{Password: factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))}).Error; err != nil {
 		return false, consts.ErrOperate + ": " + err.Error()
 	}
-	return true, consts.UserMsg + consts.MsgUpdateSuccess
+	return true, consts.MsgUserUpdate
 }
 
 func EditPayloadUser(g *gin.Context) (bool, string) {

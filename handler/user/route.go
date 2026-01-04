@@ -9,6 +9,6 @@ func SuperUserApi() restful.RouteGroup {
 		Get:    GetUserInfo,
 		Post:   ManageUserCreateOrEdit,
 		Put:    SelectUserInfo,
-		Delete: InterfaceTestF,
+		Delete: DeleteUserById,
 	}
 }
