@@ -47,7 +47,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if !factory.CheckPassword(user.Password, u.Password) {
+	if !factory.DjangoCheckPassword(user.Password, u.Password) {
 		utils.Fail(c, consts.ErrInvalidPassword)
 		return
 	}

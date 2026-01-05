@@ -7,15 +7,10 @@ import (
 	"Yearn-go/model"
 	"Yearn-go/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 )
 
 // ProcessorUser 处理器类型
 type ProcessorUser func(*gin.Context) (bool, string)
-
-type ActionUserBase struct {
-	Action string `json:"action" binding:"required,oneof=add edit reset"`
-}
 
 var actionMap = map[string]ProcessorUser{
 	"add":    CreateUser,
@@ -52,21 +47,15 @@ func SelectUserInfo(g *gin.Context) {
 
 // ManageUserCreateOrEdit 添加，修改，删除 用户
 func ManageUserCreateOrEdit(g *gin.Context) {
-	var action ActionUserBase
-	if err := g.ShouldBindBodyWith(&action, binding.JSON); err != nil {
-		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
-		return
-	}
-
+	action := g.Query("action")
 	// 操作映射
-	handler, ok := actionMap[action.Action]
+	handler, ok := actionMap[action]
 	if !ok {
-		utils.Fail(g, "不支持的操作类型: "+action.Action)
+		utils.Fail(g, "不支持的操作类型: "+action)
 		return
 	}
 
 	success, msg := handler(g)
-
 	utils.HandleResult(g, success, msg)
 }
 

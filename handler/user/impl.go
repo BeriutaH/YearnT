@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
@@ -84,7 +83,7 @@ func validateEditUser(u EditUserRequest) error {
 
 func CreateUser(g *gin.Context) (bool, string) {
 	var u CreateUserRequest
-	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+	if err := g.ShouldBindJSON(&u); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
 	if err := validateCreateUser(u); err != nil {
@@ -132,7 +131,7 @@ func CreateUser(g *gin.Context) (bool, string) {
 
 func EditUser(g *gin.Context) (bool, string) {
 	var u EditUserRequest
-	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+	if err := g.ShouldBindJSON(&u); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
 	if err := validateEditUser(u); err != nil {
@@ -153,7 +152,7 @@ func EditUser(g *gin.Context) (bool, string) {
 
 func ResetPwdUser(g *gin.Context) (bool, string) {
 	var u ChPwd
-	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+	if err := g.ShouldBindJSON(&u); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
 	if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).
@@ -165,7 +164,7 @@ func ResetPwdUser(g *gin.Context) (bool, string) {
 
 func EditPayloadUser(g *gin.Context) (bool, string) {
 	var u ChPwd
-	if err := g.ShouldBindBodyWith(&u, binding.JSON); err != nil {
+	if err := g.ShouldBindJSON(&u); err != nil {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
 	if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).
