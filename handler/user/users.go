@@ -47,7 +47,7 @@ func SelectUserInfo(g *gin.Context) {
 	utils.Ok(g, p.ToMessage())
 }
 
-// ManageUserCreateOrEdit 添加，修改，删除 用户
+// ManageUserCreateOrEdit 用户 添加，修改，重置密码
 func ManageUserCreateOrEdit(g *gin.Context) {
 	action := g.Query("action")
 	// 操作映射

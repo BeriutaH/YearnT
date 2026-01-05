@@ -1,5 +1,6 @@
 package model
 
+// CoreAccount 用户表
 type CoreAccount struct {
 	ID         uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	Username   string `gorm:"type:varchar(50);not null;index:user_idx;uniqueIndex;comment:用户名" json:"username"`
@@ -86,12 +87,14 @@ type CoreDataSource struct {
 	RuleId           int    `gorm:"type:int(100);not null;default:0;comment:规则ID" json:"rule_id"`
 }
 
+// CoreGrained 每个用户下多个权限组
 type CoreGrained struct {
 	ID     uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	UserId uint   `gorm:"type:int;not null;index:user_idx;comment:用户名" json:"user_id"`
 	Group  DBJSON `gorm:"type:json;comment:所属分组（JSON数组）" json:"group"`
 }
 
+// CoreRoleGroup 权限组，组里有什么权限
 type CoreRoleGroup struct {
 	ID          uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	Name        string `gorm:"type:varchar(50);not null;comment:角色名称" json:"name"`
