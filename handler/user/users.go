@@ -7,6 +7,8 @@ import (
 	"Yearn-go/model"
 	"Yearn-go/utils"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"log"
 )
 
 // ProcessorUser 处理器类型
@@ -65,8 +67,28 @@ func DeleteUserById(g *gin.Context) {
 		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
 		return
 	}
+	userId := uId.ID
 
-	if err := config.DB.Delete(&model.CoreAccount{}, uId).Error; err != nil {
+	// 假设 userId 是要删除的用户 ID
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. 彻底删除关联的 CoreGrained 数据
+		if err := tx.Unscoped().Where("user_id = ?", userId).Delete(&model.CoreGrained{}).Error; err != nil {
+			return err
+		}
+
+		// 2. 彻底删除用户主体
+		result := tx.Unscoped().Delete(&model.CoreAccount{}, userId)
+		if result.Error != nil {
+			return result.Error
+		}
+
+		return nil
+	})
+
+	// 统一处理事务结果
+	if err != nil {
+		// 打印具体错误以便调试，返回给前端通用失败提示
+		log.Printf("Delete user error: %v", err)
 		utils.Fail(g, consts.ErrOperate)
 		return
 	}
