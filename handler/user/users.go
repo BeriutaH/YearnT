@@ -52,7 +52,7 @@ func ManageUserCreateOrEdit(g *gin.Context) {
 func DeleteUserById(g *gin.Context) {
 	var uId IdType
 	if err := g.ShouldBindJSON(&uId); err != nil {
-		utils.Fail(g, fmt.Sprintf("%s: %v", consts.ErrParamInvalid, err))
+		utils.Fail(g, fmt.Sprint(consts.ErrParamInvalid, err))
 		return
 	}
 	userId := uId.ID
@@ -75,7 +75,7 @@ func DeleteUserById(g *gin.Context) {
 
 	// 统一处理事务结果
 	if err != nil {
-		utils.Fail(g, fmt.Sprintf("%s: %v", consts.ErrOperate, err))
+		utils.Fail(g, fmt.Sprint(consts.ErrOperate, err))
 		return
 	}
 	utils.Ok(g, consts.MsgDeleteSuccess)

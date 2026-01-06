@@ -66,6 +66,7 @@ type CoreRollback struct {
 	SQL    string `gorm:"type:longtext;not null;comment:回滚的SQL语句" json:"sql"`
 }
 
+// CoreDataSource 数据库源信息
 type CoreDataSource struct {
 	ID               uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	IDC              string `gorm:"type:varchar(50);not null;comment:机房标识" json:"idc"`

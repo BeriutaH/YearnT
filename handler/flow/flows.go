@@ -20,7 +20,7 @@ func TplGetAPis(g *gin.Context) {
 func TplPostSourceTemplate(g *gin.Context) {
 	var u tplTypes
 	if err := g.ShouldBindJSON(&u); err != nil {
-		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		utils.Fail(g, fmt.Sprint(consts.ErrParamInvalid, ": ", err))
 		return
 	}
 	step, _ := json.Marshal(u.Steps)
@@ -41,13 +41,13 @@ func TplPostSourceTemplate(g *gin.Context) {
 			Where("id = ?", u.ID).
 			Select("Source", "Steps").
 			Updates(&tpl).Error; err != nil {
-			utils.Fail(g, consts.ErrOperate+": "+err.Error())
+			utils.Fail(g, fmt.Sprint(consts.ErrOperate, ": ", err))
 			return
 		}
 	} else {
 		// 添加
 		if err := config.DB.Create(&tpl).Error; err != nil {
-			utils.Fail(g, consts.ErrOperate+": "+err.Error())
+			utils.Fail(g, fmt.Sprint(consts.ErrOperate, ": ", err))
 			return
 		}
 	}

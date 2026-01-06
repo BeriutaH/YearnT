@@ -7,6 +7,7 @@ import (
 	"Yearn-go/middleware"
 	"Yearn-go/model"
 	"Yearn-go/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -27,7 +28,7 @@ func UserRegister(c *gin.Context) {
 	hashed, _ := factory.HashPassword(u.Password) // 加密密码
 	user := model.CoreAccount{Username: u.Username, Password: hashed}
 	if err := config.DB.Create(&user).Error; err != nil {
-		utils.Fail(c, consts.ErrUserExists)
+		utils.Fail(c, fmt.Sprint(consts.UserMsg, consts.ExistsMsg))
 		return
 	}
 

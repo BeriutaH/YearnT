@@ -5,8 +5,9 @@ import (
 	"Yearn-go/consts"
 	"Yearn-go/factory"
 	"Yearn-go/model"
+	"Yearn-go/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type CommonDBPost struct {
@@ -19,7 +20,7 @@ type CommonDBPost struct {
 func SuperCreateSource(g *gin.Context) (bool, string) {
 	var u CommonDBPost
 	if err := g.ShouldBindJSON(&u); err != nil {
-		return false, consts.ErrParamInvalid + ": " + err.Error()
+		return false, fmt.Sprint(consts.ErrParamInvalid, ": ", err)
 	}
 
 	source := u.DB
@@ -32,10 +33,10 @@ func SuperCreateSource(g *gin.Context) (bool, string) {
 	if source.Password = factory.Encrypt(config.Cfg.General.SecretKey, source.Password); source.Password == "" {
 		return false, consts.ErrEncryptFailed
 	}
-	source.SourceId, source.ID = uuid.New().String(), 0
+	source.SourceId, source.ID = utils.GetUUID32(), 0
 
 	if err := config.DB.Create(&source).Error; err != nil {
-		return false, consts.ErrOperate + ": " + err.Error()
+		return false, fmt.Sprint(consts.ErrOperate, ": ", err)
 	}
 	return true, consts.MsgCreateSuccess
 }

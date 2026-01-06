@@ -37,6 +37,13 @@ func QmiFilters(omitFields []string) func(*gorm.DB) *gorm.DB {
 	}
 }
 
+// AccordingToIDEqual 查询id
+func AccordingToIDEqual(id interface{}) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("`id` = ?", id)
+	}
+}
+
 func EmptyGroup() []byte {
 	group, _ := json.Marshal([]string{})
 	return group

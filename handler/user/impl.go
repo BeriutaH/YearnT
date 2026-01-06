@@ -87,7 +87,7 @@ func CreateUser(g *gin.Context) (bool, string) {
 		return false, consts.ErrParamInvalid + ": " + err.Error()
 	}
 	if err := validateCreateUser(u); err != nil {
-		return false, consts.ErrParamInvalid + ": " + err.Error()
+		return false, fmt.Sprint(consts.ErrParamInvalid, ": ", err)
 	}
 
 	// 判断是否重名
@@ -95,7 +95,7 @@ func CreateUser(g *gin.Context) (bool, string) {
 	config.DB.Model(&model.CoreAccount{}).
 		Select("count(*) > 0").Where("username = ?", u.Username).Find(&exists)
 	if exists {
-		return false, consts.UserMsg + consts.ErrUserExists
+		return false, fmt.Sprint(consts.UserMsg, consts.ExistsMsg)
 	}
 
 	// 加密密码
