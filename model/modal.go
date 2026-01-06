@@ -40,7 +40,7 @@ type CoreSqlOrder struct {
 	ID          uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
 	WorkId      string `gorm:"type:varchar(50);not null;index:workId_idx;comment:工作ID" json:"work_id"`
 	UserId      uint   `gorm:"type:int;not null;index:query_idx;comment:用户Id" json:"user_id"`
-	Status      uint   `gorm:"type:tinyint(2);not null;comment:状态" json:"status"`
+	Status      uint   `gorm:"type:tinyint(2);not null;comment:状态" json:"status"`           // 2 执行中
 	Type        int    `gorm:"type:tinyint(2);not null;comment:类型，1-DML，0-DDL" json:"type"` // 1 dml  0 ddl
 	Backup      uint   `gorm:"type:tinyint(2);not null;comment:是否备份" json:"backup"`
 	IDC         string `gorm:"type:varchar(50);not null;comment:机房" json:"idc"`
@@ -141,7 +141,7 @@ type CoreAutoTask struct {
 	IDC       string `gorm:"type:varchar(50);not null;comment:'机房标识'" json:"idc"`
 }
 
-// CoreWorkflowTpl 工作流模板结构体
+// CoreWorkflowTpl 工作流模板审批流程
 type CoreWorkflowTpl struct {
 	ID     uint   `gorm:"primary_key;AUTO_INCREMENT;comment:'主键 ID'" json:"id"`
 	Source string `gorm:"type:varchar(50);not null;index:source_idx;comment:'数据源标识'" json:"source"`

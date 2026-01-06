@@ -3,6 +3,7 @@ package routers
 import (
 	"Yearn-go/controllers"
 	"Yearn-go/handler/db"
+	"Yearn-go/handler/flow"
 	"Yearn-go/handler/group"
 	"Yearn-go/handler/user"
 	"Yearn-go/middleware"
@@ -25,6 +26,8 @@ func SetupRouter() *gin.Engine {
 	restful.Restful(manager, "policy", group.GroupsApis())
 	// 数据库链接相关
 	restful.Restful(manager, "db", db.ManageDbApis())
+	// 审批相关
+	restful.Restful(manager, "tpl", flow.TplRestApis())
 
 	return r
 }
