@@ -6,16 +6,13 @@ import (
 	"Yearn-go/handler/common"
 	"Yearn-go/model"
 	"Yearn-go/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"log"
 )
 
-// ProcessorUser 处理器类型
-type ProcessorUser func(*gin.Context) (bool, string)
-
-var actionMap = map[string]ProcessorUser{
-	"add":    CreateUser,
+var userActionMap = map[string]common.HandlerFunc{
+	"create": CreateUser,
 	"edit":   EditUser,
 	"reset":  ResetPwdUser,
 	"policy": EditPayloadUser,
@@ -49,22 +46,13 @@ func SelectUserInfo(g *gin.Context) {
 
 // ManageUserCreateOrEdit 用户 添加，修改，重置密码
 func ManageUserCreateOrEdit(g *gin.Context) {
-	action := g.Query("action")
-	// 操作映射
-	handler, ok := actionMap[action]
-	if !ok {
-		utils.Fail(g, "不支持的操作类型: "+action)
-		return
-	}
-
-	success, msg := handler(g)
-	utils.HandleResult(g, success, msg)
+	common.ActionDispatcher(g, userActionMap)
 }
 
 func DeleteUserById(g *gin.Context) {
 	var uId IdType
 	if err := g.ShouldBindJSON(&uId); err != nil {
-		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		utils.Fail(g, fmt.Sprintf("%s: %v", consts.ErrParamInvalid, err))
 		return
 	}
 	userId := uId.ID
@@ -87,10 +75,8 @@ func DeleteUserById(g *gin.Context) {
 
 	// 统一处理事务结果
 	if err != nil {
-		// 打印具体错误以便调试，返回给前端通用失败提示
-		log.Printf("Delete user error: %v", err)
-		utils.Fail(g, consts.ErrOperate)
+		utils.Fail(g, fmt.Sprintf("%s: %v", consts.ErrOperate, err))
 		return
 	}
-	utils.Ok(g, nil)
+	utils.Ok(g, consts.MsgDeleteSuccess)
 }

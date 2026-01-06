@@ -18,8 +18,14 @@ type mysqlConfig struct {
 	DBName   string `yaml:"dbname"`
 }
 
+type general struct {
+	SecretKey string `yaml:"secret_key"`
+	Lang      string `yaml:"lang"`
+}
+
 type Config struct {
-	MySQL mysqlConfig `yaml:"mysql"`
+	MySQL   mysqlConfig `yaml:"mysql"`
+	General general     `yaml:"general"`
 }
 
 var (
@@ -40,7 +46,6 @@ func InitConfig() {
 
 func InitDB() {
 	InitConfig()
-
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		Cfg.MySQL.User,
 		Cfg.MySQL.Password,
@@ -48,6 +53,7 @@ func InitDB() {
 		Cfg.MySQL.Port,
 		Cfg.MySQL.DBName,
 	)
+	log.Println(Cfg.General)
 
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})

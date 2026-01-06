@@ -4,3 +4,6 @@ mysql:
   user: root
   password: 123456789
   dbname: yearn
+general:
+  secret_key: "1234567890123456"
+  lang: "zh"
