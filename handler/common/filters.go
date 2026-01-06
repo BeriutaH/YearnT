@@ -9,3 +9,8 @@ var UserQueryableFields = map[string]bool{
 
 // UserSensitiveFields 定义用户账号对外查询时需要排除的敏感字段
 var UserSensitiveFields = []string{"password"}
+
+var PolicyQueryableFields = map[string]bool{
+	"name":     true,
+	"group_id": true,
+}

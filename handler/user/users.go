@@ -30,18 +30,7 @@ func GetUserInfo(g *gin.Context) {
 
 // SelectUserInfo 分页查询
 func SelectUserInfo(g *gin.Context) {
-	var req common.QueryRequest
-	if err := g.ShouldBindJSON(&req); err != nil {
-		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
-		return
-	}
-
-	p := new(common.PageList[[]model.CoreAccount])
-	p.ToPageInfo(req.PageInfo).Paging().Query(
-		common.QmiFilters(common.UserSensitiveFields),
-		common.ApplyFilters(common.UserQueryableFields, req.Filters),
-	)
-	utils.Ok(g, p.ToMessage())
+	common.HandlePaging[[]model.CoreAccount](g, common.UserSensitiveFields, common.UserQueryableFields)
 }
 
 // ManageUserCreateOrEdit 用户 添加，修改，重置密码

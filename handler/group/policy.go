@@ -77,16 +77,6 @@ func SuperClearUserRule(g *gin.Context) {
 }
 
 func SuperGroup(g *gin.Context) {
-	var req common.QueryRequest
-	if err := g.ShouldBindJSON(&req); err != nil {
-		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
-		return
-	}
-
-	p := new(common.PageList[[]model.CoreRoleGroup])
-	p.ToPageInfo(req.PageInfo).Paging().Query(
-		common.ApplyFilters(common.UserQueryableFields, req.Filters),
-	)
-	utils.Ok(g, p.ToMessage())
+	common.HandlePaging[[]model.CoreRoleGroup](g, nil, common.PolicyQueryableFields)
 
 }

@@ -2,6 +2,9 @@ package common
 
 import (
 	"Yearn-go/config"
+	"Yearn-go/consts"
+	"Yearn-go/utils"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +32,34 @@ func SuccessPayload(data any, total int64, pageInfo PageInfo) PageResult {
 		Page:     pageInfo.Page,
 		PageSize: pageInfo.PageSize,
 	}
+}
+
+// HandlePaging 处理通用分页请求
+// T: 结果集切片类型，例如 []model.CoreRoleGroup
+// qmi: 需要脱敏/排除的字段列表
+// allow: 允许进行模糊查询的字段白名单
+func HandlePaging[T any](g *gin.Context, qmi []string, allow map[string]bool) {
+	var req QueryRequest
+	if err := g.ShouldBindJSON(&req); err != nil {
+		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		return
+	}
+	scopes := make([]func(*gorm.DB) *gorm.DB, 0)
+
+	// 只有当 qmi 不为空时才加载脱敏过滤器
+	if len(qmi) > 0 {
+		scopes = append(scopes, QmiFilters(qmi))
+	}
+
+	// 加载动态模糊查询过滤器
+	if len(allow) > 0 {
+		scopes = append(scopes, ApplyFilters(allow, req.Filters))
+	}
+
+	p := new(PageList[T])
+	p.ToPageInfo(req.PageInfo).Paging().Query(scopes...)
+
+	utils.Ok(g, p.ToMessage())
 }
 
 type PageList[T any] struct {
