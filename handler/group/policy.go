@@ -13,24 +13,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetUniqueIds 负责从嵌套结构中提取并去重 UUID
-func GetUniqueIds(lists ...[]string) []string {
-	idMap := make(map[string]struct{})
-
-	for _, list := range lists {
-		for _, id := range list {
-			if id != "" {
-				idMap[id] = struct{}{}
-			}
-		}
-	}
-
-	return utils.MapKeys(idMap)
-}
-
-// ValidateSourceIds 负责真正的数据库校验
-func ValidateSourceIds(db *gorm.DB, p model.PermissionList) error {
-	sourceIds := GetUniqueIds(p.DDLSource, p.DMLSource, p.QuerySource)
+// validateSourceIds 负责真正的数据库校验
+func validateSourceIds(db *gorm.DB, p model.PermissionList) error {
+	sourceIds := utils.GetUniqueIds(p.DDLSource, p.DMLSource, p.QuerySource)
 	if len(sourceIds) == 0 {
 		return nil
 	}
@@ -54,15 +39,15 @@ func SuperGroupUpdate(g *gin.Context) {
 		return
 	}
 
-	// 去重校验group_id是否有效
-	if err := ValidateSourceIds(config.DB, p.PermissionList); err != nil {
+	// 去重校验数据源ID是否有效
+	if err := validateSourceIds(config.DB, p.PermissionList); err != nil {
 		utils.Fail(g, err.Error())
 		return
 	}
 
 	per, _ := json.Marshal(p.PermissionList)
 
-	groupPolicy := model.CoreRoleGroup{
+	rg := model.CoreRoleGroup{
 		Name:        p.Name,
 		Permissions: per,
 	}
@@ -70,13 +55,13 @@ func SuperGroupUpdate(g *gin.Context) {
 	if p.ID != 0 {
 		if err := config.DB.Model(&model.CoreRoleGroup{}).
 			Scopes(common.AccordingToIDEqual(p.ID)).
-			Updates(&groupPolicy).Error; err != nil {
+			Updates(&rg).Error; err != nil {
 			utils.Fail(g, fmt.Sprint(consts.ErrOperate, ": ", err))
 			return
 		}
 	} else {
-		groupPolicy.GroupId = utils.GetUUID32()
-		if err := config.DB.Save(&groupPolicy).Error; err != nil {
+		rg.GroupId = utils.GetUUID32()
+		if err := config.DB.Save(&rg).Error; err != nil {
 			utils.Fail(g, fmt.Sprint(consts.ErrOperate, ": ", err))
 			return
 		}
@@ -92,6 +77,16 @@ func SuperClearUserRule(g *gin.Context) {
 }
 
 func SuperGroup(g *gin.Context) {
-	utils.Ok(g, nil)
+	var req common.QueryRequest
+	if err := g.ShouldBindJSON(&req); err != nil {
+		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		return
+	}
+
+	p := new(common.PageList[[]model.CoreRoleGroup])
+	p.ToPageInfo(req.PageInfo).Paging().Query(
+		common.ApplyFilters(common.UserQueryableFields, req.Filters),
+	)
+	utils.Ok(g, p.ToMessage())
 
 }

@@ -19,3 +19,18 @@ func MapKeys[K comparable, V any](m map[K]V) []K {
 	}
 	return keys
 }
+
+// GetUniqueIds 负责从嵌套结构中提取并去重
+func GetUniqueIds(lists ...[]string) []string {
+	idMap := make(map[string]struct{})
+
+	for _, list := range lists {
+		for _, id := range list {
+			if id != "" {
+				idMap[id] = struct{}{}
+			}
+		}
+	}
+
+	return MapKeys(idMap)
+}

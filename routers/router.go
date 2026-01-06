@@ -20,6 +20,7 @@ func SetupRouter() *gin.Engine {
 	// 下面的请求都开启JWT
 	auth := r.Group("/api", middleware.JWTAuth())
 	manager := auth.Group("/manage", middleware.SuperManageGroup())
+
 	// 用户相关
 	restful.Restful(manager, "user", user.SuperUserApi())
 	// 权限组相关
