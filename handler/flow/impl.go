@@ -24,6 +24,6 @@ func checkFlowOrderCompletion() []string {
 	config.DB.Model(model.CoreSqlOrder{}).
 		Select("work_id").
 		Where("`status` =?", 2).
-		Pluck("work_id", &workIds) // Pluck 用于获取单个字段的列表
+		Pluck("work_id", &workIds)
 	return workIds
 }

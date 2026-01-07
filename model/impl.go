@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"gorm.io/gorm"
 )
 
 type DBJSON []byte
@@ -51,4 +52,14 @@ func (j *DBJSON) UnmarshalJSON(data []byte) error {
 func (j *DBJSON) Decode(i interface{}) error {
 	err := json.Unmarshal(*j, i)
 	return err
+}
+
+func (u *CoreAccount) BeforeDelete(tx *gorm.DB) error {
+	// 用户删除前触发
+	return tx.Where("user_id = ?", u.ID).Delete(&CoreGrained{}).Error
+}
+
+func (r *CoreRoleGroup) BeforeDelete(tx *gorm.DB) error {
+	// 删除中间表里所有和这个 GroupId 相关的记录
+	return tx.Where("group_id = ?", r.GroupId).Delete(&CoreGrained{}).Error
 }

@@ -7,14 +7,12 @@ import (
 // AutoMigrateAll 数据库迁移模型配置
 func AutoMigrateAll() []interface{} {
 	return []interface{}{
-		&model.CoreAccount{},
 		&model.CoreGlobalConfiguration{},
 		&model.CoreSqlRecord{},
 		&model.CoreSqlOrder{},
 		&model.CoreRollback{},
 		&model.CoreDataSource{},
 		&model.CoreGrained{},
-		&model.CoreRoleGroup{},
 		&model.CoreQueryOrder{},
 		&model.CoreQueryRecord{},
 		&model.CoreAutoTask{},
@@ -23,5 +21,7 @@ func AutoMigrateAll() []interface{} {
 		&model.CoreOrderComment{},
 		&model.CoreRules{},
 		&model.CoreTotalTickets{},
+		&model.CoreAccount{},
+		&model.CoreRoleGroup{},
 	}
 }

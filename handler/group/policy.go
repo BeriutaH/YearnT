@@ -76,7 +76,14 @@ func SuperGroupUpdate(g *gin.Context) {
 func SuperClearUserRule(g *gin.Context) {
 
 	gId := g.Query("group_id")
-	println(gId)
+	if gId == "" {
+		utils.Fail(g, "删除失败：未指定 group_id")
+		return
+	}
+	if err := config.DB.Where("group_id = ?", gId).Delete(&model.CoreRoleGroup{}).Error; err != nil {
+		utils.Fail(g, "数据库删除失败: "+err.Error())
+		return
+	}
 	utils.Ok(g, nil)
 
 }
