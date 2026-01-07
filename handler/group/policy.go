@@ -80,8 +80,9 @@ func SuperClearUserRule(g *gin.Context) {
 		utils.Fail(g, "删除失败：未指定 group_id")
 		return
 	}
-	if err := config.DB.Where("group_id = ?", gId).Delete(&model.CoreRoleGroup{}).Error; err != nil {
-		utils.Fail(g, "数据库删除失败: "+err.Error())
+
+	if err := config.DB.Unscoped().Where("group_id = ?", gId).Delete(&model.CoreRoleGroup{}).Error; err != nil {
+		utils.Fail(g, fmt.Sprint(consts.ErrOperate, ": ", err))
 		return
 	}
 	utils.Ok(g, nil)

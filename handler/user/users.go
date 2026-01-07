@@ -8,7 +8,6 @@ import (
 	"Yearn-go/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 var userActionMap = map[string]common.HandlerFunc{
@@ -44,26 +43,8 @@ func DeleteUserById(g *gin.Context) {
 		utils.Fail(g, fmt.Sprint(consts.ErrParamInvalid, err))
 		return
 	}
-	userId := uId.ID
-
-	// 假设 userId 是要删除的用户 ID
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		// 1. 彻底删除关联的 CoreGrained 数据
-		if err := tx.Unscoped().Where("user_id = ?", userId).Delete(&model.CoreGrained{}).Error; err != nil {
-			return err
-		}
-
-		// 2. 彻底删除用户主体
-		result := tx.Unscoped().Delete(&model.CoreAccount{}, userId)
-		if result.Error != nil {
-			return result.Error
-		}
-
-		return nil
-	})
-
-	// 统一处理事务结果
-	if err != nil {
+	// 物理删除
+	if err := config.DB.Unscoped().Delete(&model.CoreAccount{}, uId.ID).Error; err != nil {
 		utils.Fail(g, fmt.Sprint(consts.ErrOperate, err))
 		return
 	}

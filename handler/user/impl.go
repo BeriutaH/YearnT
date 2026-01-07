@@ -32,7 +32,7 @@ type CreateUserRequest struct {
 	PwdType
 }
 type IdType struct {
-	ID int `json:"id" binding:"required"`
+	ID uint `json:"id" binding:"required"`
 }
 
 type EditUserRequest struct {
@@ -44,6 +44,38 @@ type EditUserRequest struct {
 type ChPwd struct {
 	IdType
 	PwdType
+}
+
+type PolicyUser struct {
+	IdType
+	Group []string `json:"group"`
+}
+
+func updateUserGroups(userID uint, newGroupIDs []string) error {
+
+	var user model.CoreAccount
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New(fmt.Sprint(consts.UserMsg, consts.NotFoundMsg))
+		}
+		return err
+	}
+
+	// 查权限组，确保全部存在
+	var groups []model.CoreRoleGroup
+	if err := config.DB.Where("group_id IN ?", newGroupIDs).Find(&groups).Error; err != nil {
+		return err
+	}
+	if len(groups) != len(newGroupIDs) {
+		return errors.New(fmt.Sprint("部分权限组", consts.NotFoundMsg))
+	}
+
+	// 替换原有权限组
+	if err := config.DB.Model(&user).Association("RoleGroups").Replace(groups); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func checkEmailFormat(email string) error {
@@ -81,10 +113,11 @@ func validateEditUser(u EditUserRequest) error {
 	return nil
 }
 
+// CreateUser 创建用户
 func CreateUser(g *gin.Context) (bool, string) {
 	var u CreateUserRequest
 	if err := g.ShouldBindJSON(&u); err != nil {
-		return false, consts.ErrParamInvalid + ": " + err.Error()
+		return false, fmt.Sprintf("%v: %v", consts.ErrParamInvalid, err)
 	}
 	if err := validateCreateUser(u); err != nil {
 		return false, fmt.Sprint(consts.ErrParamInvalid, ": ", err)
@@ -102,40 +135,26 @@ func CreateUser(g *gin.Context) (bool, string) {
 	u.Password = factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))
 	var user model.CoreAccount
 	if err := copier.Copy(&user, &u); err != nil {
-		return false, consts.ErrOperate + ": " + err.Error()
+		return false, fmt.Sprintf("%v: %v", consts.ErrOperate, err)
 	}
 	user.IsRecorder = 2
 
 	// 添加数据库,提交事务
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&user).Error; err != nil {
-			return err
-		}
-
-		//if err := tx.Create(&model.CoreGrained{
-		//	UserId: user.ID,
-		//	Group:  common.EmptyGroup(),
-		//}).Error; err != nil {
-		//	return err
-		//}
-
-		return nil
-	})
-
-	if err != nil {
+	if err := config.DB.Create(&user).Error; err != nil {
 		return false, fmt.Sprintf("%v: %v", consts.ErrOperate, err)
 	}
 
 	return true, consts.MsgUserCreate
 }
 
+// EditUser 修改用户信息
 func EditUser(g *gin.Context) (bool, string) {
 	var u EditUserRequest
 	if err := g.ShouldBindJSON(&u); err != nil {
-		return false, consts.ErrParamInvalid + ": " + err.Error()
+		return false, fmt.Sprintf("%v: %v", consts.ErrParamInvalid, err)
 	}
 	if err := validateEditUser(u); err != nil {
-		return false, consts.ErrParamInvalid + ": " + err.Error()
+		return false, fmt.Sprintf("%v: %v", consts.ErrParamInvalid, err)
 	}
 
 	// 前端传哪个值，改哪个值
@@ -144,12 +163,13 @@ func EditUser(g *gin.Context) (bool, string) {
 	// 判断只能更改的字段
 	if len(m) > 0 {
 		if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).Updates(m).Error; err != nil {
-			return false, consts.ErrOperate + ": " + err.Error()
+			return false, fmt.Sprintf("%v: %v", consts.ErrOperate, err)
 		}
 	}
 	return true, consts.MsgUserUpdate
 }
 
+// ResetPwdUser 重置密码
 func ResetPwdUser(g *gin.Context) (bool, string) {
 	var u ChPwd
 	if err := g.ShouldBindJSON(&u); err != nil {
@@ -162,14 +182,15 @@ func ResetPwdUser(g *gin.Context) (bool, string) {
 	return true, consts.MsgUserUpdate
 }
 
+// EditPayloadUser 修改权限组
 func EditPayloadUser(g *gin.Context) (bool, string) {
-	var u ChPwd
+	var u PolicyUser
 	if err := g.ShouldBindJSON(&u); err != nil {
-		return false, consts.ErrParamInvalid + ": " + err.Error()
+		return false, fmt.Sprintf("%v: %v", consts.ErrParamInvalid, err)
 	}
-	if err := config.DB.Model(model.CoreAccount{}).Where("id = ?", u.ID).
-		Updates(model.CoreAccount{Password: factory.DjangoEncrypt(u.Password, string(factory.GetRandom()))}).Error; err != nil {
-		return false, consts.ErrOperate + ": " + err.Error()
+
+	if err := updateUserGroups(u.ID, u.Group); err != nil {
+		return false, fmt.Sprintf("%v: %v", consts.ErrOperate, err)
 	}
-	return true, consts.UserMsg + consts.MsgUpdateSuccess
+	return true, consts.MsgUserUpdate
 }

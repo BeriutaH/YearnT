@@ -91,13 +91,14 @@ type CoreDataSource struct {
 	RuleId           int    `gorm:"type:int(100);not null;default:0;comment:规则ID" json:"rule_id"`
 }
 
-// CoreGrained 每个用户下多个权限组
+// CoreGrained 用户跟权限关系表
 type CoreGrained struct {
 	ID      uint   `gorm:"primaryKey;autoIncrement;comment:主键ID" json:"id"`
 	UserId  uint   `gorm:"not null;index:idx_user_group,unique;comment:用户ID" json:"user_id"`
 	GroupId string `gorm:"type:varchar(200);not null;index:idx_user_group,unique;comment:权限组ID" json:"group_id"`
 }
 
+// CoreRoleGroup 权限组
 type CoreRoleGroup struct {
 	ID          uint   `gorm:"primaryKey;autoIncrement;comment:主键ID" json:"id"`
 	Name        string `gorm:"type:varchar(50);not null;comment:组名" json:"name"`
