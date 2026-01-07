@@ -4,6 +4,7 @@ import (
 	"Yearn-go/config"
 	"Yearn-go/consts"
 	"Yearn-go/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -41,7 +42,7 @@ func SuccessPayload(data any, total int64, pageInfo PageInfo) PageResult {
 func HandlePaging[T any](g *gin.Context, qmi []string, allow map[string]bool) {
 	var req QueryRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
-		utils.Fail(g, consts.ErrParamInvalid+": "+err.Error())
+		utils.Fail(g, fmt.Sprint(consts.ErrParamInvalid, ": ", err))
 		return
 	}
 	scopes := make([]func(*gorm.DB) *gorm.DB, 0)

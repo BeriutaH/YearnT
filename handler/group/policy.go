@@ -32,6 +32,7 @@ func validateSourceIds(db *gorm.DB, p model.PermissionList) error {
 	return nil
 }
 
+// SuperGroupUpdate 创建，修改 权限组对应的数据库源
 func SuperGroupUpdate(g *gin.Context) {
 	var p policy
 	if err := g.ShouldBind(&p); err != nil {
@@ -71,7 +72,11 @@ func SuperGroupUpdate(g *gin.Context) {
 
 }
 
+// SuperClearUserRule 删除权限以及对应的权限组
 func SuperClearUserRule(g *gin.Context) {
+
+	gId := g.Query("group_id")
+	println(gId)
 	utils.Ok(g, nil)
 
 }

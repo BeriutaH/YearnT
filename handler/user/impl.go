@@ -112,12 +112,12 @@ func CreateUser(g *gin.Context) (bool, string) {
 			return err
 		}
 
-		if err := tx.Create(&model.CoreGrained{
-			UserId: user.ID,
-			Group:  common.EmptyGroup(),
-		}).Error; err != nil {
-			return err
-		}
+		//if err := tx.Create(&model.CoreGrained{
+		//	UserId: user.ID,
+		//	Group:  common.EmptyGroup(),
+		//}).Error; err != nil {
+		//	return err
+		//}
 
 		return nil
 	})

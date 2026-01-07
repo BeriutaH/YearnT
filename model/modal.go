@@ -89,18 +89,31 @@ type CoreDataSource struct {
 }
 
 // CoreGrained 每个用户下多个权限组
+//
+//	type CoreGrained struct {
+//		ID     uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
+//		UserId uint   `gorm:"type:int;not null;index:user_idx;comment:用户名" json:"user_id"`
+//		Group  DBJSON `gorm:"type:json;comment:所属分组（JSON数组）" json:"group"`
+//	}
 type CoreGrained struct {
-	ID     uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
-	UserId uint   `gorm:"type:int;not null;index:user_idx;comment:用户名" json:"user_id"`
-	Group  DBJSON `gorm:"type:json;comment:所属分组（JSON数组）" json:"group"`
+	ID uint `gorm:"primaryKey;autoIncrement" json:"id"`
+	// 1. 确保 UserId 类型与 CoreAccount 的 ID 类型完全一致 (通常建议去掉 type:int 让 GORM 自动处理)
+	UserId uint `gorm:"not null;index:user_idx;comment:用户ID" json:"user_id"`
+	// 2. 必须显式指定 references:ID
+	User CoreAccount `gorm:"foreignKey:UserId;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+
+	GroupId string `gorm:"type:varchar(100);not null;index:user_group_idx;comment:权限组ID" json:"group_id"`
+	// 3. 这里你写对了，但要确保 CoreRoleGroup.GroupId 在数据库里有 UNIQUE 约束
+	RoleGroup CoreRoleGroup `gorm:"foreignKey:GroupId;references:GroupId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 }
 
 // CoreRoleGroup 权限组，组里有什么权限
 type CoreRoleGroup struct {
-	ID          uint   `gorm:"primary_key;AUTO_INCREMENT;comment:主键ID" json:"id"`
-	Name        string `gorm:"type:varchar(50);not null;comment:角色名称" json:"name"`
-	Permissions DBJSON `gorm:"type:json;comment:权限列表（JSON数组）" json:"permissions"`
-	GroupId     string `gorm:"type:varchar(200);not null;index:group_idx;comment:分组唯一标识" json:"group_id"`
+	ID          uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name        string `gorm:"type:varchar(50);not null;comment:组名" json:"name"`
+	Permissions DBJSON `gorm:"type:json;comment:权限ID列表" json:"permissions"`
+	// 4. 重要：作为外键引用的目标字段，必须有唯一索引或主键
+	GroupId string `gorm:"type:varchar(200);not null;uniqueIndex:group_idx;comment:分组唯一标识" json:"group_id"`
 }
 
 type CoreQueryOrder struct {
