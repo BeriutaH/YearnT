@@ -12,7 +12,7 @@ func AutoMigrateAll() []interface{} {
 		&model.CoreSqlOrder{},
 		&model.CoreRollback{},
 		&model.CoreDataSource{},
-		&model.CoreGrained{},
+		//&model.CoreGrained{},
 		&model.CoreQueryOrder{},
 		&model.CoreQueryRecord{},
 		&model.CoreAutoTask{},
@@ -21,7 +21,8 @@ func AutoMigrateAll() []interface{} {
 		&model.CoreOrderComment{},
 		&model.CoreRules{},
 		&model.CoreTotalTickets{},
-		&model.CoreAccount{},
-		&model.CoreRoleGroup{},
+		//&model.CoreAccount{},
+		//&model.CoreRoleGroup{},
+		&model.CoreRoleSourcePrivilege{},
 	}
 }

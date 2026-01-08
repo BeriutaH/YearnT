@@ -12,8 +12,11 @@ type HandlerFunc func(*gin.Context) (bool, string)
 
 // ActionDispatcher 通用的请求分发器
 func ActionDispatcher(g *gin.Context, mapper map[string]HandlerFunc) {
-	// mapper: 存储 action 字符串与对应处理函数的映射
 	action := g.Query("action")
+	if action == "" {
+		// 如果 query 里没有，再从路径参数获取
+		action = g.Param("action")
+	}
 
 	// 查找是否存在对应的操作
 	handler, ok := mapper[action]

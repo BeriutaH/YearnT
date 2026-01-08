@@ -9,9 +9,8 @@ type CoreAccount struct {
 	RealName   string `gorm:"type:varchar(50);comment:真实姓名" json:"real_name"`
 	Email      string `gorm:"type:varchar(50);comment:邮箱地址" json:"email"`
 	IsRecorder uint   `gorm:"type:tinyint(2) not null default 2;comment:是否记录员，1是，2否" json:"is_recorder"`
-
 	// 关系映射
-	RoleGroups []CoreRoleGroup `gorm:"many2many:core_graineds;"`
+	RoleGroup []CoreRoleGroup `gorm:"many2many:core_graineds;joinForeignKey:UserId;joinReferences:GroupId" json:"role_groups"`
 }
 
 // CoreGlobalConfiguration 核心全局配置
@@ -100,10 +99,25 @@ type CoreGrained struct {
 
 // CoreRoleGroup 权限组
 type CoreRoleGroup struct {
-	ID          uint   `gorm:"primaryKey;autoIncrement;comment:主键ID" json:"id"`
-	Name        string `gorm:"type:varchar(50);not null;comment:组名" json:"name"`
-	Permissions DBJSON `gorm:"type:json;comment:权限ID列表" json:"permissions"`
-	GroupId     string `gorm:"type:varchar(200);not null;uniqueIndex:group_idx;comment:分组唯一标识" json:"group_id"`
+	ID   uint   `gorm:"primaryKey;autoIncrement;comment:主键ID" json:"id"`
+	Name string `gorm:"type:varchar(50);not null;comment:组名" json:"name"`
+	//Permissions DBJSON `gorm:"type:json;comment:权限ID列表" json:"permissions"`
+	GroupId string `gorm:"type:varchar(200);not null;uniqueIndex:group_idx;comment:分组唯一标识" json:"group_id"`
+}
+
+//type CoreRoleGroup struct {
+//	CoreRoleGroupT
+//	// 查角色的时候，可以预加载 (Preload) 出它所有的数据库权限
+//	Permissions []CoreRoleSourcePrivilege `gorm:"foreignKey:GroupId" json:"permissions"`
+//}
+
+// CoreRoleSourcePrivilege 数据源跟权限关系表
+type CoreRoleSourcePrivilege struct {
+	ID uint `gorm:"primaryKey;autoIncrement;comment:主键ID" json:"id"`
+	// 联合唯一索引：将三个字段赋予相同的索引名称 (uk_group_source_type)，这样数据库会保证：同一个组 + 同一个库 + 同一个类型，永远只有一行
+	GroupId  string `gorm:"type:varchar(200);uniqueIndex:uk_group_source_type;not null;comment:权限组唯一标识" json:"group_id"`
+	SourceId string `gorm:"type:varchar(200);uniqueIndex:uk_group_source_type;index:idx_source_id;not null;comment:数据库UUID" json:"source_id"`
+	Type     string `gorm:"type:varchar(20);uniqueIndex:uk_group_source_type;not null;comment:权限类型:query,dml,ddl" json:"type"`
 }
 
 type CoreQueryOrder struct {
@@ -111,11 +125,11 @@ type CoreQueryOrder struct {
 	WorkId       string `gorm:"type:varchar(50);not null;index:workId_idx;comment:工单ID" json:"work_id"`
 	UserId       uint   `gorm:"type:int;not null;comment:提交人用户ID" json:"user_id"`
 	Date         string `gorm:"type:varchar(50);not null;comment:提交日期" json:"date"`
-	ApprovalTime string `gorm:"type:varchar(50);not null;comment:审批时间" json:"approval_time"`
+	ApprovalTime string `gorm:"type:varchar(50);not null;comment:审批通过的时间" json:"approval_time"`
 	Text         string `gorm:"type:longtext;not null;comment:SQL内容或说明文本" json:"text"`
-	Assigned     string `gorm:"type:varchar(50);not null;comment:分配执行人用户名" json:"assigned"`
-	Export       uint   `gorm:"type:tinyint(2);not null;comment:是否导出，0否 1是" json:"export"`
-	SourceId     string `gorm:"type:varchar(200);not null;index:source_idx;comment:数据源唯一标识" json:"source_id"`
+	Assigned     string `gorm:"type:varchar(50);not null;comment:当前指派人/处理人" json:"assigned"`
+	Export       uint   `gorm:"type:tinyint(2);not null;comment:是否允许导出，0否 1是" json:"export"`
+	SourceId     string `gorm:"type:varchar(200);not null;index:source_idx;comment:数据源ID" json:"source_id"`
 	Status       int    `gorm:"type:tinyint(2);not null;index:status_idx;comment:工单状态" json:"status"`
 }
 

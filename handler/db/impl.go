@@ -40,3 +40,7 @@ func SuperCreateSource(g *gin.Context) (bool, string) {
 	}
 	return true, consts.MsgCreateSuccess
 }
+func SuperEditSource(g *gin.Context) (bool, string) {
+
+	return true, consts.MsgCreateSuccess
+}

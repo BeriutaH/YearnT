@@ -8,9 +8,7 @@ import (
 
 var sourceActionMap = map[string]common.HandlerFunc{
 	"create": SuperCreateSource,
-	//"edit":   EditUser,
-	//"reset":  ResetPwdUser,
-	//"policy": EditPayloadUser,
+	"edit":   SuperEditSource,
 }
 
 // ManageDBCreateOrEdit 创建 修改 数据源

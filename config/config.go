@@ -1,6 +1,7 @@
 package config
 
 import (
+	"Yearn-go/model"
 	"Yearn-go/service"
 	"fmt"
 	"gopkg.in/yaml.v3"
@@ -60,6 +61,7 @@ func InitDB() {
 	if err != nil {
 		log.Fatal("连接数据库失败:", err)
 	}
+	DB.AutoMigrate(&model.CoreAccount{}, &model.CoreRoleGroup{}, &model.CoreGrained{})
 
 	// 自动建表
 	if err := DB.AutoMigrate(service.AutoMigrateAll()...); err != nil {
