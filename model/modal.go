@@ -75,7 +75,7 @@ type CoreDataSource struct {
 	Source           string `gorm:"type:varchar(50);not null;comment:数据源名称" json:"source"`
 	IP               string `gorm:"type:varchar(200);not null;comment:IP地址" json:"ip"`
 	Port             int    `gorm:"type:int(10);not null;comment:端口号" json:"port"`
-	UserId           uint   `gorm:"type:int;not null;comment:用户ID" json:"user_id"`
+	Username         string `gorm:"type:varchar(50);not null;comment:登录名" json:"username"`
 	Password         string `gorm:"type:varchar(150);not null;comment:密码" json:"password"`
 	IsQuery          int    `gorm:"type:tinyint(2);not null;comment:读写权限，0写，1读，2读写" json:"is_query"`
 	FlowID           int    `gorm:"type:int(100);not null;comment:流程ID" json:"flow_id"`
@@ -104,12 +104,6 @@ type CoreRoleGroup struct {
 	//Permissions DBJSON `gorm:"type:json;comment:权限ID列表" json:"permissions"`
 	GroupId string `gorm:"type:varchar(200);not null;uniqueIndex:group_idx;comment:分组唯一标识" json:"group_id"`
 }
-
-//type CoreRoleGroup struct {
-//	CoreRoleGroupT
-//	// 查角色的时候，可以预加载 (Preload) 出它所有的数据库权限
-//	Permissions []CoreRoleSourcePrivilege `gorm:"foreignKey:GroupId" json:"permissions"`
-//}
 
 // CoreRoleSourcePrivilege 数据源跟权限关系表
 type CoreRoleSourcePrivilege struct {
