@@ -41,6 +41,27 @@ func SuperCreateSource(g *gin.Context) (bool, string) {
 	return true, consts.MsgCreateSuccess
 }
 func SuperEditSource(g *gin.Context) (bool, string) {
+	// 除了密码，其余都携带最新信息，只有用户修改密码才会更新密码
+	var req model.CoreDataSource
+	if err := g.ShouldBindJSON(&req); err != nil {
+		return false, fmt.Sprint(consts.ErrParamInvalid, ": ", err)
+	}
+	var qmi []string
+	if req.Password == "" {
 
+		qmi = []string{"id", "source_id", "password"}
+	} else {
+
+		qmi = []string{"id", "source_id"}
+		req.Password = factory.Encrypt(config.Cfg.General.SecretKey, req.Password)
+	}
+
+	if err := config.DB.Model(&req).
+		Where("id = ?", req.ID).
+		Select("*").
+		Omit(qmi...).
+		Updates(&req).Error; err != nil {
+		return false, fmt.Sprint(consts.ErrOperate, ": ", err)
+	}
 	return true, consts.MsgCreateSuccess
 }
