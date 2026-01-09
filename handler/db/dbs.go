@@ -1,8 +1,12 @@
 package db
 
 import (
+	"Yearn-go/config"
+	"Yearn-go/consts"
 	"Yearn-go/handler/common"
+	"Yearn-go/model"
 	"Yearn-go/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,8 +21,17 @@ func ManageDBCreateOrEdit(g *gin.Context) {
 }
 
 func SuperDeleteSource(g *gin.Context) {
-	utils.Ok(g, nil)
+	sourceId := g.Query("source_id")
+	if sourceId == "" {
+		utils.Fail(g, "未指定 source_id")
+		return
+	}
 
+	if err := config.DB.Where("source_id = ?", sourceId).Delete(&model.CoreDataSource{SourceId: sourceId}).Error; err != nil {
+		utils.Fail(g, fmt.Sprint(consts.ErrOperate, ": ", err))
+		return
+	}
+	utils.Ok(g, nil)
 }
 
 func SuperFetchSource(g *gin.Context) {

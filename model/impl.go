@@ -63,3 +63,8 @@ func (r *CoreRoleGroup) BeforeDelete(tx *gorm.DB) error {
 	// 删除中间表里所有和这个 GroupId 相关的记录
 	return tx.Where("group_id = ?", r.GroupId).Delete(&CoreGrained{}).Error
 }
+
+func (r *CoreDataSource) BeforeDelete(tx *gorm.DB) error {
+	// 删除中间表里所有和这个 SourceId 相关的记录
+	return tx.Where("source_id = ?", r.SourceId).Delete(&CoreRoleSourcePrivilege{}).Error
+}
