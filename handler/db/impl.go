@@ -17,6 +17,7 @@ type CommonDBPost struct {
 	WordList      []string             `json:"word_list"`
 }
 
+// SuperCreateSource 添加数据库源信息
 func SuperCreateSource(g *gin.Context) (bool, string) {
 	var u CommonDBPost
 	if err := g.ShouldBindJSON(&u); err != nil {
@@ -40,20 +41,19 @@ func SuperCreateSource(g *gin.Context) (bool, string) {
 	}
 	return true, consts.MsgCreateSuccess
 }
+
+// SuperEditSource 更新数据库源信息
 func SuperEditSource(g *gin.Context) (bool, string) {
 	// 除了密码，其余都携带最新信息，只有用户修改密码才会更新密码
 	var req model.CoreDataSource
 	if err := g.ShouldBindJSON(&req); err != nil {
 		return false, fmt.Sprint(consts.ErrParamInvalid, ": ", err)
 	}
-	var qmi []string
-	if req.Password == "" {
-
-		qmi = []string{"id", "source_id", "password"}
-	} else {
-
-		qmi = []string{"id", "source_id"}
+	qmi := []string{"id", "source_id"}
+	if req.Password != "" {
 		req.Password = factory.Encrypt(config.Cfg.General.SecretKey, req.Password)
+	} else {
+		qmi = append(qmi, "password")
 	}
 
 	if err := config.DB.Model(&req).
@@ -63,5 +63,18 @@ func SuperEditSource(g *gin.Context) (bool, string) {
 		Updates(&req).Error; err != nil {
 		return false, fmt.Sprint(consts.ErrOperate, ": ", err)
 	}
-	return true, consts.MsgCreateSuccess
+
+	// 根据group_id 更新,删除，CoreRoleSourcePrivilege的source_id
+	if req.IsQuery == 0 {
+		// 变为只写，将QuerySource列表里把这个删掉，清理掉所有类型为 "query" (只读) 的权限记录
+		config.DB.Where("source_id = ? AND type = ?", req.SourceId, "query").
+			Delete(&model.CoreRoleSourcePrivilege{})
+	}
+	if req.IsQuery == 1 {
+		// 变为只读，将DDL 和 DML 列表里把这个删掉，清理掉所有类型为 "ddl" 或 "dml" (写权限) 的记录
+		config.DB.Where("source_id = ? AND type IN ?", req.SourceId, []string{"ddl", "dml"}).
+			Delete(&model.CoreRoleSourcePrivilege{})
+	}
+
+	return true, consts.MsgUpdateSuccess
 }
