@@ -8,6 +8,7 @@ import (
 	"Yearn-go/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CommonDBPost struct {
@@ -15,6 +16,45 @@ type CommonDBPost struct {
 	DB            model.CoreDataSource `json:"db"`
 	ExcludeDbList []string             `json:"exclude_db_list"`
 	WordList      []string             `json:"word_list"`
+}
+
+// updateSourceWithAtomic 数据源编辑及其连锁反应的事务逻辑
+func updateSourceWithAtomic(req model.CoreDataSource, qmi []string) error {
+	return config.DB.Transaction(func(tx *gorm.DB) error {
+
+		// 更新数据源主表 (强制更新零值并排除黑名单)
+		if err := tx.Model(&req).
+			Where("id = ?", req.ID).
+			Select("*").
+			Omit(qmi...).
+			Updates(&req).Error; err != nil {
+			return err
+		}
+
+		// 同步更新待处理工单的负责人
+		if err := tx.Model(&model.CoreQueryOrder{}).
+			Where("status = ? AND source_id = ?", 1, req.SourceId).
+			Update("assigned", req.Principal).Error; err != nil {
+			return err
+		}
+
+		// 动态权限清理，根据group_id 更新,删除，CoreRoleSourcePrivilege的source_id
+		return cleanObsoletePrivileges(tx, req.SourceId, req.IsQuery)
+	})
+}
+
+// cleanObsoletePrivileges 负责清理不合规的权限
+func cleanObsoletePrivileges(tx *gorm.DB, sourceId string, isQuery int) error {
+	query := tx.Where("source_id = ?", sourceId)
+
+	switch isQuery {
+	case 0: // 变为只写 -> 删掉读权限
+		return query.Where("type = ?", "query").Delete(&model.CoreRoleSourcePrivilege{}).Error
+	case 1: // 变为只读 -> 删掉写权限
+		return query.Where("type IN ?", []string{"ddl", "dml"}).Delete(&model.CoreRoleSourcePrivilege{}).Error
+	default:
+		return nil
+	}
 }
 
 // SuperCreateSource 添加数据库源信息
@@ -56,24 +96,9 @@ func SuperEditSource(g *gin.Context) (bool, string) {
 		qmi = append(qmi, "password")
 	}
 
-	if err := config.DB.Model(&req).
-		Where("id = ?", req.ID).
-		Select("*").
-		Omit(qmi...).
-		Updates(&req).Error; err != nil {
+	// 执行数据库更新操作
+	if err := updateSourceWithAtomic(req, qmi); err != nil {
 		return false, fmt.Sprint(consts.ErrOperate, ": ", err)
-	}
-
-	// 根据group_id 更新,删除，CoreRoleSourcePrivilege的source_id
-	if req.IsQuery == 0 {
-		// 变为只写，将QuerySource列表里把这个删掉，清理掉所有类型为 "query" (只读) 的权限记录
-		config.DB.Where("source_id = ? AND type = ?", req.SourceId, "query").
-			Delete(&model.CoreRoleSourcePrivilege{})
-	}
-	if req.IsQuery == 1 {
-		// 变为只读，将DDL 和 DML 列表里把这个删掉，清理掉所有类型为 "ddl" 或 "dml" (写权限) 的记录
-		config.DB.Where("source_id = ? AND type IN ?", req.SourceId, []string{"ddl", "dml"}).
-			Delete(&model.CoreRoleSourcePrivilege{})
 	}
 
 	return true, consts.MsgUpdateSuccess
